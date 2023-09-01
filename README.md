@@ -16,5 +16,9 @@ python train.py /path/to/data
 python generate.py
 ```
 
+Для проверки лекарственных свойств молекул следует запустить следующий скрипт:
+```
+python predict.py smiles
+```
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
