@@ -16,7 +16,7 @@ python train.py /path/to/data
 - Smiles - представление молекулы в виде SMILES
 - Disease - название болезни
 
-Для генерации новых лекарственных молекул используиется натреннированная на датасете ZINC модель [DGMG](https://lifesci.dgl.ai/api/model.pretrain.htmls) из библиотеки dgllife.
+Для генерации новых лекарственных молекул используиется натреннированная на датасете ZINC модель [DGMG](https://lifesci.dgl.ai/api/model.pretrain.html) из библиотеки dgllife.
 Модель DGMG имеет следующую структуру:
 ```
 DGMG(
