@@ -15,7 +15,7 @@ class DiseasePipeline:
         "symbol": {'Al','As','Au','B','Br','C','Cl','Co','F','Fe','Gd','H','I','K','Mn','Mo','N','Na','O','P','Pd','Pt','S','Se','Si','Zn'},
         "n_valence": {0, 1, 2, 3, 4, 5, 6},
         "n_hydrogens": {0, 1, 2, 3, 4},
-        "hybridization": {'s', 'sp', 'sp2', 'sp3'},
+        "hybridization": {'s', 'sp', 'sp2', 'sp3', 'sp3d', 'sp3d2'},
       }
     )
     self.bond_featurizer = BondFeaturizer(
