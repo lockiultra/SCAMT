@@ -24,7 +24,6 @@ def generate():
     st.session_state.smiles = get_valid_smiles()
 
 def predict(smiles):
-    print(st.session_state.result_dict)
     st.session_state.result_dict = st.session_state.dp.predict([smiles])
     get_df()
 
