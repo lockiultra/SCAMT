@@ -25,16 +25,16 @@ class JTNNVAE(nn.Module):
         self.jtnn = JTNNEncoder(hidden_size, depthT, nn.Embedding(vocab.size(), hidden_size))
         self.decoder = JTNNDecoder(vocab, hidden_size, latent_size, nn.Embedding(vocab.size(), hidden_size))
 
-        self.jtmpn = JTMPN(hidden_size, depthG)
-        self.mpn = MPN(hidden_size, depthG)
+        self.jtmpn = JTMPN(hidden_size, depthG).cuda()
+        self.mpn = MPN(hidden_size, depthG).cuda()
 
         self.A_assm = nn.Linear(latent_size, hidden_size, bias=False)
         self.assm_loss = nn.CrossEntropyLoss(size_average=False)
 
-        self.T_mean = nn.Linear(hidden_size, latent_size)
-        self.T_var = nn.Linear(hidden_size, latent_size)
-        self.G_mean = nn.Linear(hidden_size, latent_size)
-        self.G_var = nn.Linear(hidden_size, latent_size)
+        self.T_mean = nn.Linear(hidden_size, latent_size).cuda()
+        self.T_var = nn.Linear(hidden_size, latent_size).cuda()
+        self.G_mean = nn.Linear(hidden_size, latent_size).cuda()
+        self.G_var = nn.Linear(hidden_size, latent_size).cuda()
 
     def encode(self, jtenc_holder, mpn_holder):
         tree_vecs, tree_mess = self.jtnn(*jtenc_holder)
