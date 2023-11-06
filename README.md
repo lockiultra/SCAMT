@@ -2,73 +2,36 @@
 
 Репозиторий для прохождения стажировки в компании SCAMT. Задача состоит в генерации новых лекарственных молекул и перепрофилировании существующих.
 
-Для установки зависимостей следует запустить следующий скрипт:
-```
-pip install -r requirements.txt
-```
+### Классификатор
 
-Для тренировки на ваших данных следует запустить следующий скрипт:
-```
-python train.py /path/to/data
-```
-Датасет должен быть в формате .csv и содержать следующие столбцы:
-- Drug - название лекарственного препарата
-- Smiles - представление молекулы в виде SMILES
-- Disease - название болезни
+В ходе работы были обучены 8 графовых моделей на основе Message Passing Neural Network (MPNN) для классификации лекарственных молекул на следующие типвы болезней:
+- Сердечно-сосудистые заболевания (Cardiovascular diseases)
+- Заболевания пищеварительной системы (Digestive system diseases)
+- Психические и поведенческие расстройства (Mental and behavioural disorders)
+- Заболевания метаболической системы (Metabloic diseases)
+- Заболевания нервной системы (Nervous system diseases)
+- Заболевания кожных покровов (Skin and connective tissue diseases)
+- Заболевания мочеывделительной системы (Urinary system diseases)
 
-Для генерации новых лекарственных молекул используиется натреннированная на датасете ZINC модель [DGMG](https://lifesci.dgl.ai/api/model.pretrain.html) из библиотеки dgllife.
-Модель DGMG имеет следующую структуру:
-```
-DGMG(
-  (graph_embed): GraphEmbed(
-    (node_gating): Sequential(
-      (0): Linear(in_features=128, out_features=1, bias=True)
-      (1): Sigmoid()
-    )
-    (node_to_graph): Linear(in_features=128, out_features=256, bias=True)
-  )
-  (graph_prop): GraphProp(
-    (message_funcs): ModuleList(
-      (0-1): 2 x Linear(in_features=259, out_features=256, bias=True)
-    )
-    (node_update_funcs): ModuleList(
-      (0-1): 2 x GRUCell(256, 128)
-    )
-  )
-  (add_node_agent): AddNode(
-    (add_node): Sequential(
-      (0): Linear(in_features=256, out_features=256, bias=True)
-      (1): Dropout(p=0.2, inplace=False)
-      (2): Linear(in_features=256, out_features=10, bias=True)
-    )
-    (node_type_embed): Embedding(9, 128)
-    (initialize_hv): Linear(in_features=384, out_features=128, bias=True)
-    (dropout): Dropout(p=0.2, inplace=False)
-  )
-  (add_edge_agent): AddEdge(
-    (add_edge): Sequential(
-      (0): Linear(in_features=384, out_features=384, bias=True)
-      (1): Dropout(p=0.2, inplace=False)
-      (2): Linear(in_features=384, out_features=4, bias=True)
-    )
-  )
-  (choose_dest_agent): ChooseDestAndUpdate(
-    (choose_dest): Sequential(
-      (0): Linear(in_features=259, out_features=259, bias=True)
-      (1): Dropout(p=0.2, inplace=False)
-      (2): Linear(in_features=259, out_features=1, bias=True)
-    )
-  )
-) 
-```
-Для генерации лекарственных молекул следует запустить следующий скрипт:
-```
-python generate.py
-```
+Обученные модели для каждого типа расположены в папке Models под видом {disease}.h5. Модели обучены на основе датасета (./data/data.csv) собранного на сайте [ClinicalTrials](https://clinicaltrials.gov)
 
-Для проверки лекарственных свойств молекул следует запустить следующий скрипт:
-```
-python predict.py smiles
-```
+В ходе обучения были получены слежующие результаты для каждой модели:
+| Model     | Train AUC | Val AUC |
+|----------|----------|----------|
+| Cardiovascular diseases     | 0.8688   | 0.8515 |
+| Digestive system diseases    | 0.7973   | 0.8421 |
+| Mental and behavioural disorders   | 0.9423   | 0.9957
+| Metabolic diseases   | 0.8163   | 0.8498 |
+| Nervous system diseases   | 0.8962   | 0.9159 |
+| Skin and connective tissue diseases   | 0.9753  | 0.9945
+| Immune system diseases   | 0.7658  | 0.8020 |
+| Urinary system diseases   | 0.8492  | 0.9549 |
+
+### Генератор
+
+В качестве модели для генерации лекарственных молекул был выбран Junction Tree VAE (JTVAE). Код модели содержится в папке fast_jtnn.
+
+Обученная модель находится в папке Models под названием model.epoch-19
+
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)

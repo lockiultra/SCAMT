@@ -8,8 +8,8 @@ from Featurizers import AtomFeaturizer, BondFeaturizer
 from MPNN import MPNNModel
 
 class DiseasePipeline:
-  def __init__(self, data: pd.DataFrame):
-    self.diseases = data.Disease.unique()
+  def __init__(self):
+    self.diseases = ['cardiovascular_disease', 'digestive_system_disease', 'immune_system_disease', 'mental_and_behavioural_disorder', 'metabolic_disease', 'nervous_system_disease', 'skin_and_connective_tissue_disease', 'urinary_system_disease']
     self.atom_featurizer = AtomFeaturizer(
       allowable_sets={
         "symbol": {'Al','As','Au','B','Br','C','Cl','Co','F','Fe','Gd','H','I','K','Mn','Mo','N','Na','O','P','Pd','Pt','S','Se','Si','Zn'},
@@ -24,14 +24,14 @@ class DiseasePipeline:
         "conjugated": {False, True},
       }
     )
-    self.data = data.copy()
+    # self.data = data.copy()
     self.curr_df = None
-    self.x_train, self.y_train, self.x_val, self.y_val = self.__get_train_val_data(data)
-    self.models = {disease: MPNNModel(atom_dim=self.x_train[0][0][0].shape[0], bond_dim=self.x_train[1][0][0].shape[0]) for disease in self.diseases}
+    self.models = {disease: MPNNModel(atom_dim=44, bond_dim=6) for disease in self.diseases}
     self.is_trained = False
     self.train_history = dict()
 
-  def train(self):
+  def train(self, data: pd.DataFrame):
+    self.data = data.copy()
     for i, disease in enumerate(self.diseases):
       print(f'\n({i}) ======={disease}=======\n')
       self.curr_df = self.data.copy()
