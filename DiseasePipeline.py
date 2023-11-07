@@ -8,7 +8,10 @@ from Featurizers import AtomFeaturizer, BondFeaturizer
 from MPNN import MPNNModel
 
 class DiseasePipeline:
-  def __init__(self):
+  def __init__(self: 'DiseasePipeline'):
+    """
+    Initializes the class instance.
+    """
     self.diseases = ['cardiovascular_disease', 'digestive_system_disease', 'immune_system_disease', 'mental_and_behavioural_disorder', 'metabolic_disease', 'nervous_system_disease', 'skin_and_connective_tissue_disease', 'urinary_system_disease']
     self.atom_featurizer = AtomFeaturizer(
       allowable_sets={
@@ -24,13 +27,21 @@ class DiseasePipeline:
         "conjugated": {False, True},
       }
     )
-    # self.data = data.copy()
     self.curr_df = None
     self.models = {disease: MPNNModel(atom_dim=44, bond_dim=6) for disease in self.diseases}
     self.is_trained = False
     self.train_history = dict()
 
-  def train(self, data: pd.DataFrame):
+  def train(self, data: pd.DataFrame) -> None:
+    """
+    Trains the model using the provided data.
+
+    Args:
+        data (pd.DataFrame): The input data for training.
+
+    Returns:
+        None
+    """
     self.data = data.copy()
     for i, disease in enumerate(self.diseases):
       print(f'\n({i}) ======={disease}=======\n')
@@ -54,7 +65,16 @@ class DiseasePipeline:
       self.train_history[disease] = history
     self.is_trained = True
 
-  def predict(self, smiles):
+  def predict(self, smiles: str) -> dict:
+    """
+    Predicts the disease for a given SMILES string.
+
+    Args:
+        smiles (str): The SMILES string to predict the disease for.
+
+    Returns:
+        dict: A dictionary containing the predicted disease for each disease model.
+    """
     if not self.is_trained:
       print('Error! Model is not trained')
       return
@@ -66,7 +86,20 @@ class DiseasePipeline:
     return result
 
 
-  def __get_train_val_data(self, data):
+  def __get_train_val_data(self, data: pd.DataFrame) -> tuple:
+    """
+    Generate the training and validation data from the given DataFrame.
+
+    Parameters:
+    - data (pd.DataFrame): The input DataFrame containing the data.
+
+    Returns:
+    - tuple: A tuple containing the training and validation data.
+      - x_train (np.ndarray): The training data represented as graphs.
+      - y_train (pd.Series): The corresponding labels for the training data.
+      - x_val (np.ndarray): The validation data represented as graphs.
+      - y_val (pd.Series): The corresponding labels for the validation data.
+    """
     data = data.dropna()
     permutation = np.random.permutation(np.arange(data.shape[0]))
     train_index = permutation#[:int(data.shape[0] * 0.8)]
@@ -77,17 +110,35 @@ class DiseasePipeline:
     y_val = data.iloc[val_index].Disease
     return (x_train, y_train, x_val, y_val)
 
-  def __get_dataset(self, X, y, curr_disease, batch_size=128, shuffle=False):
-    # replace_disease_dict = {
-    #   x: 1 if x == curr_disease else 0 for x in self.diseases
-    # }
-    # y = y.replace(replace_disease_dict)
+  def __get_dataset(self, X, y, batch_size: int = 128, shuffle: bool = False) -> tf.data.Dataset:
+    """
+    Generates a TensorFlow dataset from the given input data.
+
+    Args:
+        X: The input data.
+        y: The target labels.
+        batch_size: The batch size for the dataset. Defaults to 128.
+        shuffle: Whether to shuffle the dataset. Defaults to False.
+
+    Returns:
+        A TensorFlow dataset object.
+    """
     dataset = tf.data.Dataset.from_tensor_slices((X, (y)))
     if shuffle:
       dataset = dataset.shuffle(1024)
     return dataset.batch(batch_size).map(self.prepare_batch, -1).prefetch(-1)
 
-  def prepare_batch(self, x_batch, y_batch):
+  def prepare_batch(self, x_batch: tuple, y_batch: np.ndarray) -> tuple:
+    """
+    Prepares a batch of data for training or evaluation.
+
+    Args:
+        x_batch (tuple): A tuple containing atom_features, bond_features, and pair_indices.
+        y_batch (np.ndarray): An array containing the target values.
+
+    Returns:
+        tuple: A tuple containing the prepared batch data and the target values.
+    """
     atom_features, bond_features, pair_indices = x_batch
     num_atoms = atom_features.row_lengths()
     num_bonds = bond_features.row_lengths()
@@ -102,7 +153,16 @@ class DiseasePipeline:
     bond_features = bond_features.merge_dims(outer_axis=0, inner_axis=1).to_tensor()
     return (atom_features, bond_features, pair_indices, molecule_indicator), y_batch
 
-  def molecule_from_smiles(self, smiles):
+  def molecule_from_smiles(self, smiles: str) -> Chem.Mol:
+    """
+    Generate a molecule object from a SMILES string.
+
+    Args:
+        smiles (str): The SMILES string representation of the molecule.
+
+    Returns:
+        Chem.Mol: The molecule object generated from the SMILES string.
+    """
     molecule = Chem.MolFromSmiles(smiles, sanitize=False)
     flag = Chem.SanitizeMol(molecule, catchErrors=True)
     if flag != Chem.SanitizeFlags.SANITIZE_NONE:
@@ -110,7 +170,19 @@ class DiseasePipeline:
     Chem.AssignStereochemistry(molecule, cleanIt=True, force=True)
     return molecule
 
-  def graph_from_molecule(self, molecule):
+  def graph_from_molecule(self, molecule: Chem.Mol) -> tuple:
+      """
+      Generate a graph representation from a given molecule.
+
+      Args:
+          molecule (Chem.Mol): The molecule to generate the graph from.
+
+      Returns:
+          tuple: A tuple containing the atom features, bond features, and pair indices.
+              - atom_features (np.array): An array of atom features.
+              - bond_features (np.array): An array of bond features.
+              - pair_indices (np.array): An array of pair indices.
+      """
       atom_features = []
       bond_features = []
       pair_indices = []
@@ -124,7 +196,19 @@ class DiseasePipeline:
               bond_features.append(self.bond_featurizer.encode(bond))
       return np.array(atom_features), np.array(bond_features), np.array(pair_indices)
 
-  def graph_from_smiles(self, smiles_list):
+  def graph_from_smiles(self, smiles_list: list) -> tuple:
+      """
+      Generate a graph from a list of SMILES strings.
+
+      Args:
+          smiles_list (list): A list of SMILES strings representing molecules.
+
+      Returns:
+          tuple: A tuple containing three TensorFlow ragged tensors:
+                 - atom_features (tf.Tensor): A ragged tensor of atom features.
+                 - bond_features (tf.Tensor): A ragged tensor of bond features.
+                 - pair_indices (tf.Tensor): A ragged tensor of pair indices.
+      """
       atom_features_list = []
       bond_features_list = []
       pair_indices_list = []
